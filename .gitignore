@@ -1,0 +1,23 @@
+# Variables de entorno (contiene la URI de conexión con credenciales)
+.env
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Archivos de Python compilados / caché
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de configuración de editores / IDEs
+.vscode/
+.idea/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log-* |   
