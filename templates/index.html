@@ -147,6 +147,40 @@
             color: #777;
             margin-top: 30px;
         }
+
+        /* --- Resumen con IA --- */
+        .ia-container {
+            background-color: #fff;
+            max-width: 700px;
+            margin: 25px auto 0;
+            padding: 18px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .ia-btn {
+            background-color: #7a4de8;
+        }
+
+        .ia-btn:hover {
+            background-color: #6338c7;
+        }
+
+        .ia-btn:disabled {
+            background-color: #b9a6ee;
+            cursor: not-allowed;
+        }
+
+        #mensaje-ia {
+            margin: 14px 0 0;
+            line-height: 1.5;
+            min-height: 1.5em;
+        }
+
+        #mensaje-ia.error {
+            color: #c1432f;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +232,12 @@
         </form>
     </div>
 
+    <!-- Resumen del catálogo generado con IA (solo al pulsar el botón) -->
+    <div class="ia-container">
+        <button type="button" id="btn-ia" class="ia-btn">✨ Resumen con IA</button>
+        <p id="mensaje-ia"></p>
+    </div>
+
     <!-- Listado de reseñas guardadas -->
     <div class="resenas-container">
         <h2>Reseñas guardadas</h2>
@@ -236,6 +276,28 @@
             {% endfor %}
         {% endif %}
     </div>
+
+    <script>
+        const btnIA = document.getElementById("btn-ia");
+        const mensajeIA = document.getElementById("mensaje-ia");
+
+        btnIA.addEventListener("click", async () => {
+            btnIA.disabled = true;
+            mensajeIA.className = "";
+            mensajeIA.textContent = "Pensando...";
+            try {
+                const res = await fetch("{{ url_for('resumen_ia') }}", { method: "POST" });
+                const data = await res.json();
+                mensajeIA.textContent = data.mensaje;
+                if (!res.ok) mensajeIA.className = "error";
+            } catch (err) {
+                mensajeIA.className = "error";
+                mensajeIA.textContent = "Error de conexión. Intenta de nuevo.";
+            } finally {
+                btnIA.disabled = false;
+            }
+        });
+    </script>
 
 </body>
 </html>

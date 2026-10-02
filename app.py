@@ -1,12 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime
 from dotenv import load_dotenv
 import os
 
+import dns.resolver
+
+from services.stats_service import obtener_resumen
+from services.ai_service import generar_mensaje
+
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
+
+# Forzar DNS públicos de Google para resolver la dirección SRV de MongoDB Atlas.
+# Soluciona el error "The DNS query name does not exist" en algunos equipos Windows.
+dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+dns.resolver.default_resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
 
 # Inicializar la aplicación Flask
 app = Flask(__name__)
@@ -76,6 +86,24 @@ def eliminar(id):
     """
     resenas_collection.delete_one({"_id": ObjectId(id)})
     return redirect(url_for("index"))
+
+
+@app.route("/ai/resumen", methods=["POST"])
+def resumen_ia():
+    """
+    Ruta de IA: calcula el resumen real del catálogo y pide a la IA
+    un mensaje breve en lenguaje natural. Solo se ejecuta al pulsar el botón.
+    """
+    try:
+        datos = obtener_resumen(resenas_collection)
+        mensaje = generar_mensaje(datos)
+        return jsonify({"mensaje": mensaje})
+    except Exception as e:
+        # Manejo amigable de errores: no mostramos detalles técnicos al usuario
+        print("Error IA:", e)
+        return jsonify({
+            "mensaje": "No pude generar el resumen en este momento. Intenta de nuevo en un rato."
+        }), 500
 
 
 # Punto de entrada de la aplicación
